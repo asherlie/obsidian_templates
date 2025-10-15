@@ -2,7 +2,6 @@
 const file = tp.file.content;
 let lines = file.split("\n");
 // NOTE: buttons should have attribute "remove true"
-// TODO: button must be moved after running
 // TODO: add timestamp on creation somewhere in table
 function transform_ln(table_ln, ln) {
 	let sep_ln = "";
