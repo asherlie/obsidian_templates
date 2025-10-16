@@ -41,7 +41,7 @@ function duplicate_table_above(button_txt) {
 	for (let i = 0; i < lines.length; ++i) {
 		if (lines[i].includes(button_txt)) {
 			button_text = lines.slice(i-1, i+5).join("\n");
-			console.log(button_text);
+			//console.log(button_text);
 			button_start_ln = i-1;
 			button_end_ln = i+4;
 			cursor_ln = i;
@@ -67,8 +67,8 @@ function duplicate_table_above(button_txt) {
 		// if line is made up of only header divider chars
 		if (lines[i].split("|").join("").split("-").join("").split(" ").join("") == "") {
 			table_start_ln = i - 1;
-			console.log("table starts at:");
-			console.log(i - 1);
+			//console.log("table starts at:");
+			//console.log(i - 1);
 			break;
 		}
 	}
@@ -107,5 +107,9 @@ function duplicate_table_above(button_txt) {
 	    // tR += "\n❌ No table found above.\n";
 	}
 }
-duplicate_table_above("duplicate benching table");
+
+let button_txt = "placeholder";
+button_txt = "duplicate benching table";
+console.log(tp.user.args);
+duplicate_table_above(button_txt);
 %>
