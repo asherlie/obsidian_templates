@@ -1,5 +1,6 @@
 <%*
-/* buttons should look like this (BT == "`"):
+/* NOTE: adding a template hotkey apparently registers as a command
+buttons should look like this (BT == "`"):
 BT.BT.BT.button
 name duplicate benching table
 type append_template
@@ -7,7 +8,6 @@ action duplicate_table_above
 remove true
 BT.BT.BT
 */
-// TODO: add timestamp on creation somewhere in table
 function transform_ln(table_ln, ln) {
 	let sep_ln = "";
 	let ret = "";
@@ -25,8 +25,28 @@ function transform_ln(table_ln, ln) {
 	return ret;
 	//return ln.split("|")[0];
 }
-function duplicate_table_above(button_txt) {
-	const file = tp.file.content;
+
+function only_contains_chars(str, chars) {
+	for (let i = 0; i < str.length; ++i) {
+		if (!chars.contains(str[i])) {
+			return false;
+		}
+	}
+	return true;
+}
+async function duplicate_table_above(button_txt) {
+	// Get the current file being edited
+	//const currentFile = tp.config.target_file;
+	//console.log("Target file: " + currentFile.path + "\n");
+	
+	// Or get active file
+	// using active file, as current file is wrong for some reason
+	const active_file = app.workspace.getActiveFile();
+	console.log("using active file: " + active_file.path + "\n");
+	// console.log(await app.vault.read(active_file));
+
+	// const file = tp.file.content;
+	const file = await app.vault.read(active_file);
 	let lines = file.split("\n");
 	
 	// using button line as starting point for search
@@ -39,12 +59,14 @@ function duplicate_table_above(button_txt) {
 	
 	// find text of button markdown as start point
 	for (let i = 0; i < lines.length; ++i) {
-		if (lines[i].includes(button_txt)) {
+		// console.log("line: " + lines[i] + ". checking for: name " + button_txt);
+		if (lines[i].includes("name " + button_txt)) {
+			console.log("FOUND");
 			button_text = lines.slice(i-1, i+5).join("\n");
-			//console.log(button_text);
+			console.log(button_text);
 			button_start_ln = i-1;
-			button_end_ln = i+4;
-			cursor_ln = i;
+			button_end_ln = i+5;
+			cursor_ln = i - 1;
 			break;
 		}
 	}
@@ -65,10 +87,25 @@ function duplicate_table_above(button_txt) {
 	// we're finding the line that our relevant table begins at
 	for (let i = cursor_ln; i >= 0; --i) {
 		// if line is made up of only header divider chars
-		if (lines[i].split("|").join("").split("-").join("").split(" ").join("") == "") {
+		/*
+		console.log("investigating line ");
+		console.log(i);
+		console.log(lines[i]);
+		*/
+		// in case our button has some whitespace between it and the table
+		if (lines[i] == "") {
+			continue;
+		}
+		// should i allow empty spaces? invalidates it it seems
+		if (only_contains_chars(lines[i], ['|', '-'])) {
+		// if (lines[i].split("|").join("").split("-").join("").split(" ").join("") == "") {
 			table_start_ln = i - 1;
-			//console.log("table starts at:");
-			//console.log(i - 1);
+			/*
+			console.log("table starts at:");
+			console.log(i - 1);
+			console.log(lines[i-1]);
+			*/
+			//console.log(lines[i-1]);
 			break;
 		}
 	}
@@ -83,6 +120,7 @@ function duplicate_table_above(button_txt) {
 		}
 	}
 	*/
+	let output_txt = "";
 	for (let i = table_start_ln; i < cursor_ln; ++i) {
 	    if (lines[i].startsWith("|")) {
 	        table_lines.push(transform_ln(table_ln, lines[i]));
@@ -96,8 +134,10 @@ function duplicate_table_above(button_txt) {
 	    const table_text = table_lines.join("\n");
 		// don't forget to add a new button
 		// console.log(tp.date.now("MM-DD-YYYY").length);
-		tR += "\n`" + tp.date.now("MM-DD-YYYY hh:mm A") + "`\n";
-	    tR += "\n" + table_text + "\n" + button_text;
+		//tR += "\n`" + tp.date.now("MM-DD-YYYY hh:mm A") + "`\n";
+	    //tR += "\n" + table_text + "\n" + button_text;
+		output_txt += "\n`" + tp.date.now("MM-DD-YYYY hh:mm A") + "`\n";
+	    output_txt += "\n" + table_text + "\n" + button_text;
 		//lines.splice(button_start_ln, 3);
 		//console.log(lines);
 		//await tp.file.write(lines.join("\n"));
@@ -106,10 +146,8 @@ function duplicate_table_above(button_txt) {
 	} else {
 	    // tR += "\n❌ No table found above.\n";
 	}
+	return output_txt;
 }
 
-let button_txt = "placeholder";
-button_txt = "duplicate benching table";
-console.log(tp.user.args);
-duplicate_table_above(button_txt);
+return duplicate_table_above(window.duplicate_button_text);
 %>
